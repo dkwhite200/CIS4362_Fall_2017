@@ -21,7 +21,7 @@ int pFlag::getFlagError() {
 //This method initialises the class variables unpad, n and flagError
 void pFlag::setFlag(int argc, char* argv[]) {
     n = 8;
-    std::regex reg("-b/d{1,3}");          	//create regex to check for block number flag
+    std::regex reg("-b\d{1,3}");          	//create regex to check for block number flag
     if(argc < 1 || argc > 3){               //check number of arguments
         flagError = 1;
         std::cerr << "\nError (Type 1): Invalid number of arguments passed.\n";

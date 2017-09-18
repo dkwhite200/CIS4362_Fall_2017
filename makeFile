@@ -6,6 +6,9 @@ LFLAGS = -g -std=gnu++11 -Wall
 pad: $(PSOURCE)
 	$(CC) $(LFLAGS) $(PSOURCE) -o pad
 
+toss: 
+	\rm *.pad
+
 clean:
 	\rm *.o *~ *.pad pad
 	
