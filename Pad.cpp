@@ -5,6 +5,7 @@
 #include "Pad.h"
 #include <iostream>
 #include <vector>
+#include <cstdint>
 
 
 int Pad::getPadError() {

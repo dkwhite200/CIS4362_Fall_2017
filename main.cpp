@@ -2,7 +2,7 @@
 // Created by dkwhi on 9/10/2017.
 //
 #include <iostream>
-#include "pFLag.h"
+#include "pFlag.h"
 #include "Pad.h"
 
 int main(int argc, char* argv[]){

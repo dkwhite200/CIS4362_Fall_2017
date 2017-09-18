@@ -1,12 +1,12 @@
-PSOURCE = main.cpp pFlag.cpp pFlag.h Pad.cpp Pad.cpp
+PSOURCE = main.cpp pFlag.cpp pFlag.h Pad.cpp Pad.h
 CC = g++
 CFLAGS = -g -Wall -c
-LFLAGS = -g -std=c++11 -Wall
+LFLAGS = -g -std=gnu++11 -Wall
 
 pad: $(PSOURCE)
-	$(CC) $(LFALGS) $(PSOURCE) -o pad
+	$(CC) $(LFLAGS) $(PSOURCE) -o pad
 
 clean:
-	\rm *.o *~ disp nsub
+	\rm *.o *~ *.pad pad
 	
 	
