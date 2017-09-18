@@ -10,6 +10,6 @@ toss:
 	\rm *.pad
 
 clean:
-	\rm *.o *~ *.pad pad
+	\rm *.pad *.upad pad
 	
 	

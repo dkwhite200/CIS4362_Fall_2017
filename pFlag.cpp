@@ -32,7 +32,7 @@ void pFlag::setFlag(int argc, char* argv[]) {
 		std::string temp = argv[i];
         if (temp == "-p"){ unpad = false; }
         if (temp == "-u"){ unpad = true; }
-        else if (std::regex_match(temp,reg)){ //if block number is found, parse out and store in n
+        else if (!std::regex_match(temp,reg)){ //if block number is found, parse out and store in n
             std::string temp = argv[i];
             unsigned int ln = temp.length() - 2;
             n = std::stoi(temp.substr(2,ln));
