@@ -1,0 +1,212 @@
+Exercise 2 Examples (Padding and Byte Transposition) 
+CIS5362 Fall 2017
+
+					Pad Program
+
+Example 1:
+Let foo.txt be the file from Exercise-1 with the 8 bytes containing the ASCII representation of the text string "The Dog\n" 
+$ ./disp < foo.txt
+54 68 65 20 44 6f 67 0a 
+$ ./pad < foo.txt > foo.pad
+$ ./disp < foo.pad
+54 68 65 20 44 6f 67 0a 08 08 08 08 08 08 08 08
+$ ./pad -u < foo.pad
+The Dog
+$ 
+
+Explanation:
+The length of foo.txt is 8 bytes, which is already a multiple of the (default) block length 8. Since we must have at
+least one pad character, the output length must be at least 9, which means we must have an output that is 16 bytes long,
+with 8 pad characters at the end. Since there are 8 pad characters, each of them must be the value 0x08. When unpadded,
+the original file is output.
+
+Example 2:
+Let foo.txt be the file from Exercise-1 with the 8 bytes containing the ASCII representation of the text string "The Dog\n" 
+$ ./disp < foo.txt
+54 68 65 20 44 6f 67 0a 
+$ ./pad < foo.txt > foo.pad
+$ ./disp < foo.pad
+54 68 65 20 44 6f 67 0a 08 08 08 08 08 08 08 08
+$ ./pad < foo.pad > foo.pad.padagain
+$ ./disp < foo.pad.padagain
+54 68 65 20 44 6f 67 0a 08 08 08 08 08 08 08 08 
+08 08 08 08 08 08 08 08
+$ ./pad -u < foo.pad.padagain | .disp
+54 68 65 20 44 6f 67 0a 08 08 08 08 08 08 08 08 
+$ 
+
+Explanation:
+The length of foo.txt is 8 bytes, which is padded with 8 pad characters, each with the value 0x08. When this file is
+padded, it is 16 bytes long and must be padded to 24 bytes, with 8 pad bytes, each with the value 0x08 (pad does not
+"care" what the contents of the input file happen to be, so it does not "care" that it starts with 8 printable ASCII
+characters followed by 8 non-printable ASCII characters). When unpadded, the last 8 characters (all with value 0x08)
+are removed, so the file foo.pad is output.
+
+Example 3:
+Let foo.pad be a padded file with the first 8 bytes containing the ASCII representation of the text string "The Dog\n" followed by some additional characters.  
+$ ./disp < foo.pad
+54 68 65 20 44 6f 67 0a 08 08 08 08
+$ ./pad -u < foo.pad | ./disp
+54 68 65 20 44 6f 67 0a 
+Error: pad byte values are not consistent (0x08, 0x0a)
+Error: input length not a multiple of block length b=8
+$
+
+Explanation:
+The last byte, which must be a pad byte, has value 0x08. However, the last 8 bytes do not all have the value of 0x08,
+which is inconsistent. The error message here only reports the first (working backwards from the end of the file) inconsistent value (there are 4 of them).
+The second error message reports that the length of foo.pad is 12 bytes, which is not a multiple of the (default)
+block length 8. It could also be possible to reason that the correct pad length should be 8 (since that is what the
+last pad value says it should be, and if the file had enough 0x08 bytes appended to the end of it to reach the next
+multiple of n=8, the last 8 bytes would all be 0x08, which would be a correct pad), but you do not need to have your
+program try to figure this out. Note that all (one of) the "data blocks" are output, but that the last (partial/incorrect)
+block is not output. Note also that the error messages are sent to stderr, not stdout, so that disp does not see them as input.
+
+Example 4:
+Let foo.pad be a padded file with the first 8 bytes containing the ASCII representation of the text string "The Dog\n" followed by some additional characters.  
+$ ./disp < foo.pad
+54 68 65 20 44 6f 67 0a 01 02 03 04 05 06 07 08
+$ ./pad -u < foo.pad | ./disp
+54 68 65 20 44 6f 67 0a 
+Error: pad byte values are not consistent (0x08, 0x07)
+$
+
+Explanation:
+The last byte has value 8, and the total length is a multiple of 8, so the total length is consistent with the block
+length. However, the last 8 bytes do not all have the value 0x08, so their values are not consistent with each other (or the last pad byte).
+
+Example 5:
+Let foo.pad be a padded file with the first 8 bytes containing the ASCII representation of the text string "The Dog\n" followed by some additional characters.
+$ ./disp < foo.pad
+54 68 65 20 44 6f 67 0a 0a 0a 0a 0a 0a 0a 0a 0a 
+$ ./pad -u < foo.pad | ./disp
+54 68 65 20 44 6f 67 0a 
+Error: pad byte value (0x0a) not consistent with block length (0x08)
+$
+
+Explanation:
+The last byte has value 0x0a, but the block length is 8, so the pad length cannot exceed 0x08.  
+
+
+					Btrans Program
+
+Program 2: target name = btrans
+Reads from stdin, writes to stdout. 
+Flags: -e for encrypt
+	-d for decrypt
+	-b<n> for blocksize = n
+	-k <filename> for file containing the key
+
+Example 1:
+Let foo.txt be the file from Exercise-1 with the 8 bytes containing the ASCII representation of the text string "The Dog\n" and let btkey1.bin hold the permutation key.  
+$ ./pad < foo.txt > foo.pad
+$ ./disp < foo.pad
+54 68 65 20 44 6f 67 0a 08 08 08 08 08 08 08 08
+$ ./disp < btkey1.bin
+02 07 06 00 05 03 01 04
+$ ./btrans -e -k btkey1.bin < foo.pad > foo.pad.bt1encr
+$ ./disp < foo.pad.bt1encr
+20 67 54 6f 0a 44 65 68 08 08 08 08 08 08 08 08
+$ ./btrans -d -k btkey1.bin < foo.pad.bt1encr | pad -u
+The Dog
+$ 
+
+Explanation:
+The usual approach to block encryption is to pad to a multiple of the block length (always), then apply block
+encryption. foo.txt is padded, then encrypted. Encryption shuffles the bytes around in blocks of 8 bytes each
+(this is not apparent in the padding bytes since their values are all the same). Byte 0 of the input (0x54) is moved to
+byte 4 of the output, while byte 3 of the input (0x0a) is moved to byte 0 of the output.
+Decryption unshuffles the encrypted file, block at a time, and pad -u removes the 8 pad bytes. 
+
+Example 2:
+Let foo.txt be the file from Exercise-1 with the 8 bytes containing the ASCII representation of the text string "The Dog\n" and let btkey1.bin hold the permutation key.  
+$ ./disp < foo.txt
+54 68 65 20 44 6f 67 0a 
+$ ./disp < btkey1.bin
+02 07 06 00 05 03 01 04
+$ ./btrans -e -k btkey1.bin < foo.txt > foo.bt1encr
+$ cat foo.bt1encr
+ gTo
+Deh$
+$ ./disp < foo.bt1encr
+20 67 54 6f 0a 44 65 68
+$ ./btrans -d -k btkey1.bin < foo.bt1encr
+The Dog
+$ 
+
+Explanation:
+The length of foo.txt is 8 bytes, which is a multiple of the (default) block length 8. Since btrans does not know or
+care about padding, and the total length is a multiple of the block length, it does not complain. Encryption shuffles
+the bytes around in blocks in the one and only block. Byte 0 of the input ('T') is moved to byte 4 of the output, while
+byte 3 of the input (' ') is moved to byte 0 of the output. Note that the newline (byte 7 of the input) has been moved
+to byte 4 of the output, so the file no longer ends with a newline (which is why there is the shell prompt '$' at the end of the output).
+
+Example 3:
+Let foo.txt be the file from Exercise-1 with the 8 bytes containing the ASCII representation of the text string "The Dog\n" and let btkey2.bin hold the permutation key.  
+$ ./pad -b12 < foo.txt > foo.pad
+$ ./disp < foo.pad
+54 68 65 20 44 6f 67 0a 04 04 04 04 
+$ ./disp < btkey2.bin
+0a 02 07 06 00 05 0b 03 01 08 04 09 
+$ ./btrans -e -k btkey2.bin -b12 < foo.pad > foo.pad.bt2encr
+$ ./disp < foo.pad.bt2encr
+44 04 68 0a 04 6f 20 65 04 04 54 67 
+$ ./btrans -b12 -d -k btkey2.bin < foo.pad.bt2encr | pad -u -b12
+The Dog
+$ 
+
+Explanation:
+The length of foo.txt is 8 bytes, which must have have 4 pad bytes added to reach the desired block length of 12.
+Byte 0 of the input (0x54) is moved to byte 10 (0x0a) of the output, byte 1 of the input (0x68) is moved to byte 2 (0x02)
+of the output, ... byte 4 of the input (0x44) is moved to byte 0 (0x00) of the output. When decrypted and unpadded,
+the original file is output. Order of the commandline parameters does not matter.
+
+Example 3:
+
+$ ./btrans -e < foo.pad > foo.pad.bt2encr
+$ Error: missing key file
+Usage: btrans -k <keyfile> [-e | -d] [-b<blocksize>]
+$ 
+
+Example 4:
+
+$ ./disp < foo.pad
+54 68 65 20 44 6f 67 0a 04 04 04 04 
+$ ./disp < btkey1.bin
+02 07 06 00 05 03 01 04
+$ ./btrans -e -k btkey1.bin < foo.pad > foo.pad.bt1encr
+Error: input length (12) not a multiple of block size (8) 
+$ ./disp < foo.pad.bt1encr
+20 67 54 6f 0a 44 65 68 
+$ ./btrans -d -k btkey1.bin < foo.pad.bt1encr
+The Dog
+$ ./btrans -d -k btkey1.bin < foo.pad.bt1encr | pad -u
+Error: pad byte value (0x0a) not consistent with block length (0x08)
+$ 
+
+Explanation:
+The input is of length 12 bytes, but the (default) block length (8) and the key file expect a multiple of 8 bytes.
+However, btrans has already output the first block transposed according to the key. When decrypted, the first 8 bytes
+of the original input are output (but not the last 4 bytes). When the output is unpadded, pad complains that the last byte value (0x0a) is too large for the block length (8).
+
+Example 5:
+
+$ ./disp < foo.pad
+54 68 65 20 44 6f 67 08 08 08 08 08 08 08 08 08 
+$ ./disp < btkey1a.bin
+02 07 06 00 02 03 08 02
+$ ./btrans -e -k btkey1a.bin < foo.pad > foo.pad.bt1aencr
+Error: bad key file (0x02 appears twice)
+Error: key value invalid (0x08)
+$ 
+
+Explanation:
+The key file has two errors: the same value appears two or more times (0x02), which is not valid for a permutation.
+Also, the value 0x08 appears, which is too large for the block size of 0x08 (the values must be exactly 0x00 to 0x07 inclusive).
+It is not necessary to report all of the problems with the key file once the first one has been found and reported.
+
+Hint: 
+Use disp -xin -bout to make your key files.
+ 
+
+

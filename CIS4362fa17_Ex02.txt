@@ -1,0 +1,114 @@
+Exercise 2: Byte Transposition and Padding
+CIS5362 Fall 2017
+
+Assigned 9/4/17
+Due 9/13/17
+
+Write two programs that compile and run on storm.cise.ufl.edu. 
+
+Program 1: target name = pad
+Reads from stdin, writes to stdout. 
+Flags: -p to pad
+	-u to unpad
+	-b<n> for block length n
+Description:
+Reads stdin (arbitrary bytes), writes to stdout.
+
+Padding: 
+With the -p (pad) option pad outputs the same data (in binary format) padded so that the total length of the output is
+the smallest multiple of n bytes (1 < n <= 256) that is greater than the input length, with n=8 as the default.
+So if n=8, then the output must be of length 8, 16, 24, 32, 40, etc. bytes. Padding is between 1 and n bytes appended
+to the end of the data, with the value of each byte (in binary) equal to the number of padding byte(s).
+That is, if n=16 and the length of the input is 11, there will be 5 padding bytes at the end, each of which will have
+the hexadecimal value of 0x05. If n = 256, use 0 as the pad byte to mean 256 (there will never be zero pad bytes, so this is not ambiguous).
+
+Unpadding: 
+With the -u (unpad) option pad removes the 1 to n padding bytes and outputs the nonpad data bytes in binary format,
+or if the padding is incorrect, outputs an error message to stderr and may produce partial or no output to stdout;
+in particular, the last (partial) block may be output as read, or not output at all.
+
+Error Checking: 
+Pad should only return an error code for invalid parameters when padding, since any input file can be padded correctly.
+When unpadding, pad must return a non-zero error code and print an error message to stderr if the padding is incorrect
+or if the total length is not detected to be a multiple of the block length. The default block length is n=8.
+Pad must return 0 if there are no errors.
+  
+
+Program 2: target name = btrans
+Reads from stdin, writes to stdout. 
+Flags: -e for encrypt
+	-d for decrypt
+	-b<n> for blocksize = n
+	-k <filename> for file containing the key
+
+Description:
+Reads in arbitrary bytes from stdin, writes same bytes in transposed order to stdout.
+Reads n bytes (default n=8) and reorders them according to the permutation given in the key file, then outputs that
+block of bytes in the permuted order. The input file must be a multiple of n bytes or else an error is output to stderr
+and the last block (with less than n bytes) is not output. So if n=8, the input must be of byte length 8, 16, 24, 32, etc.
+
+Key File:
+The key file is n bytes long that encodes (in binary) a permutation of n bytes, with one byte per position,
+and each byte a unique value in the range of 0 to n-1. The permutation is given in array form. The permutation is
+specified by the position of the key byte and its value, so that the ith byte of input block j is the k[i]th byte of
+output block j, where k[i] is the (binary, not ASCII) value of the ith byte of the keyfile, and i ranges from 0 to n-1.
+
+Encryption (-e option):
+The permutation as specified by the key file is applies block at a time to the input. For input block j, the ith byte
+is output as the k[i]th byte of the jth output block, where k[i] is the binary value of the ith byte of the keyfile.
+So, if the key file holds (represented in hex)
+
+03 01 00 02
+
+and the input holds (ASCII)
+
+ABCDEFGH
+
+(exactly 8 characters), then encrypting with a block length of n=4 will yield the 8-byte output file that holds the 8 characters
+
+CBDAGFHE
+
+Decryption:
+The permutation is the inverse of the permutation for encryption. Hence, the key file must be read in, then the
+permutation inverted before applying the transposition. So, if the key file holds (represented in hex)
+
+03 01 00 02
+
+its inverse will be
+
+02 01 03 00
+
+If the input holds (ASCII)
+
+CBDAGFHE
+
+(exactly 8 characters), then decrypting with the given key and a block length of n=4 will yield the 8-byte output file that holds the 8 characters
+
+ABCDEFGH
+
+Note that with the 8-byte input
+
+ABCDEFGH
+
+decrypting with the same key (03 01 00 02) will yield the 8-byte output
+
+DBACHFEG
+
+since it inverts the given permutation and then permutes the input according to that.
+
+Error Checking:
+The program must check for error conditions (e.g., missing key file, key file not having a valid permutation of n
+bytes, not having a multiple of n bytes in the input, etc.), and report any error to stderr in a meaningful way, then exit with a non-zero exit code.
+
+Submission:
+Submit 
+1) a makefile for all programs and support code that makes the executables pad and btrans when "make all" is typed
+2) all source code (header files, etc.)
+3) README.txt file that explains the environmental expectations of the code and lists any bugs
+4) Brief textual report Report_2 in text, doc, docx, or PDF format that reflects on how you approached the problem and how you solved any challenges, and what you learned from the assignment.
+
+
+
+
+
+
