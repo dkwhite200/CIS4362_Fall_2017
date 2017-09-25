@@ -32,14 +32,12 @@ void Pad::padProcess(bool unpad, int n) {
         }
         int temp;						//create temp for number pad int holding
         int test;						//create test int for testing pad is same number
-        for(int i=count; i<0; i--){			//iterate back in inU untill pad is gone
+        for(int i=count; i<0; i--){		//iterate back in inU untill pad is gone
             
-            temp = inU[i];				//set temp to hex value of inU[i]
+            temp = (int)inU[i];			//set temp to hex value of inU[i]
             if(temp == 0){ temp = 256;}	//set temp to 0 if 256
             if(i == count){ test = temp;}//initialize test condition of same pad number
-            
             if(test == temp){
-				
 				if(test >= (count - i)){ inU.pop_back(); }//pop out pad if all seems well
 				else {					//error if pad ends before it should
 					padError = 6;
@@ -60,7 +58,7 @@ void Pad::padProcess(bool unpad, int n) {
 				padError = 7;
 				std::cerr << "\nError (Type 6): Unexpected Error\n";
 				return;
-            }					//break if char is the correct start of file
+            }					
         }
         
         for (int i=0; i<=(count - test); i++){//print data to stdout
@@ -83,7 +81,7 @@ void Pad::padProcess(bool unpad, int n) {
         }
         if(n == 256){ padNum = 0;}		//set pad to 0 if n = 256
         for (int i=0; i<padNum; i++){	//print padding
-			padder = padNum;
+			padder = (char)padNum;
             printf("%c", padder);
         }
         padError = 0;
