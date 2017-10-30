@@ -3,6 +3,7 @@
 
 #define DEBUG 0
 #define MAXBYTES 256
+#define BIT_MASK 0x01
 #define USAGE "\n\nUsage : bitrans [-{e | d}][-b<blocksize>] - k<keyfile>\n\n"
 
 int get_key_file(int, char *);
@@ -11,6 +12,7 @@ int key_test(int);
 int transpose(int);
 int get_block(int, int *);
 int transpose_block(int, int *);
+int output_block(int, int *);
 
 int key_map[256];
 int trans_loc[256];
@@ -26,7 +28,6 @@ int main(int argc, char *argv[])
 
     if (argc < 3)
     {
-        std::cerr << ;
         fprintf(stderr, "\n\nbitrans call has too few arguments\n\n");
         fprintf(stderr, USAGE);
         return 1;
@@ -41,7 +42,7 @@ int main(int argc, char *argv[])
     {
         if (argv[i][0] == '-')
         {
-            fprintf(stderr, "error: bad flag: %s. (Try \"-%s\")\n", argv[count]);
+            fprintf(stderr, "error: bad flag: %s\n", &argv[i][0]);
             fprintf(stderr, USAGE);
             return 7;
         }
@@ -58,17 +59,18 @@ int main(int argc, char *argv[])
 
         case 'b':
             if (DEBUG)
-                fprintf(stderr, "Block length %s\n", &argv[count][2]);
+                fprintf(stderr, "Block length %s\n", &argv[i][2]);
             sscanf(&argv[i][2], "%d", &len);
             break;
 
         case 'k':
-            if (argv[count][2] != '\0')
+            if (argv[i][2] != '\0')
             {
                 key_present = true;
                 if (DEBUG)
-                    fprintf(stderr, "Getting key from %s\n", &argv[count][2]);
-                error_code = get_key_file(len, &argv[count][2]) if (error_code != 0)
+                    fprintf(stderr, "Getting key from %s\n", &argv[i][2]);
+                error_code = get_key_file(len, &argv[i][2]);
+                if (error_code != 0)
                 {
                     return error_code;
                 }
@@ -77,18 +79,18 @@ int main(int argc, char *argv[])
             {
                 key_present = true;
                 if (DEBUG)
-                    fprintf(stderr, "Getting key from %s\n", &argv[count][3]);
-                error_code = get_key_file(len, &argv[count][3]);
+                    fprintf(stderr, "Getting key from %s\n", &argv[i][3]);
+                error_code = get_key_file(len, &argv[i][3]);
                 if (error_code != 0)
                 {
                     return error_code;
                 }
-                count++
+                i++;
             }
             break;
 
         default:
-            fprintf(stderr, "Invalid flag \"%s\" used", &argv[count][3]);
+            fprintf(stderr, "Invalid flag \"%s\" used", &argv[i][3]);
             fprintf(stderr, USAGE);
             return 7;
         }
@@ -122,7 +124,7 @@ int main(int argc, char *argv[])
     {
         for (int i = 0; i < len * 8; i++)
         {
-            trans_loc[key_val[i]] = i;
+            trans_loc[key_map[i]] = i;
         }
     }
     else
@@ -139,7 +141,6 @@ int main(int argc, char *argv[])
 int get_key_file(int len, char *file_name)
 {
     FILE *fd;
-    char c = 0;
     if (DEBUG)
         fprintf(stderr, "In get_key_file, length of key must be blocksize, len = %d, file = %s\n", len, file_name);
     fd = fopen(file_name, "r");
@@ -191,18 +192,18 @@ int key_test(int len)
     for (i = 0; i < len; ++i)
     {
         if (DEBUG)
-            fprintf(stderr, "\t%d:\t%d\n", i, key_val[i]);
-        if (key_val[i] >= len * 8)
+            fprintf(stderr, "\t%d:\t%d\n", i, key_map[i]);
+        if (key_map[i] >= len * 8)
         {
-            fprintf(stderr, "Key value too large at %d: %d\n", i, key_val[i]);
+            fprintf(stderr, "Key value too large at %d: %d\n", i, key_map[i]);
             return 5;
         }
-        if (marked[key_val[i]])
+        if (marked[key_map[i]])
         {
-            fprintf(stderr, "Duplicate key value at %d: %d\n", i, key_val[i]);
+            fprintf(stderr, "Duplicate key value at %d: %d\n", i, key_map[i]);
             return 6;
         }
-        marked[key_val[i]] = 1;
+        marked[key_map[i]] = 1;
     }
     return 0;
 }
@@ -271,7 +272,7 @@ int transpose_block(int blen, int *block)
 
     if (DEBUG)
         fprintf(stderr, "Transposing block %d\n", block_count++);
-    for (byte = 0; bit < blen * 8; ++bit)
+    for (bit = 0; bit < blen * 8; ++bit)
     {
         tmp[bit] = block[bit];
     }
