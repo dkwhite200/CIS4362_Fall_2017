@@ -1,0 +1,86 @@
+Exercise 4: Bit Transposition and Bit Display
+CIS5362 Fall 2017
+
+Assigned 10/13/17
+Due 10/23/17
+
+Write two programs that compile and run on storm.cise.ufl.edu. 
+
+Program 1: target name = bitdisp
+Reads from stdin, writes to stdout. 
+Flags: -bin binary input (default)
+	-acbin ascii coded binary input
+	-bout binary output
+	-acbout ascii coded binary output (default)
+	-
+Description:
+Reads stdin (bytes or ASCII characters), writes to stdout (bytes or ASCII characters). 
+
+This program is similar to the disp program from Exercise 1, except instead of ASCII coded hexadecimal input and output options, it has ASCII coded binary input and ouput options. 
+With the -bin flag, the process should read (arbitrary) bytes in, ignoring white space.
+With the -acbin flag, the process should read in ASCII characters that encode '0', '1', or white space, ignoring the white space, and assemble the the corresponding bit values into bytes,  starting with the MSB. 
+With the -bout flag, each stored byte is simply output as a binary byte (NOT the ASCII codes for the bits in the byte), with NO additional white space added. 
+With the -acbout flag, the stored byte is converted to its ASCII binary representation, that is, a a sequence of eight ASCII codes for '0' and '1' characters, with the MSB on the left and LSB on the right. There should be no white space between the bits of a byte, except for a single space between the upper and lower nybble (bits 3 and 4), and a newline at the end of each output byte. 
+With -bin and -acbout flags, the number of bytes in the output should be ten times the number of bytes in the input (8 ASCII characters for the 8 bits in each byte, plus one space and one newline per byte).
+With the -acbin and -bout flags, the output length in bytes can be no more than 1/8 that of the input (bitdisp requires 8 ASCII coded bits to fill each byte output), and may be less, depending on how much white space is in the input file. 
+With -bin and -bout flags, the output should be identical to the input.
+With the -acbin and -acbout flags, assuming that only ASCII '0', '1', and whitespace appear in the input, the sequence of '0's and '1's in the output should be identical to that of the input, with only the whitespace changed (perhaps). 
+bitdisp should only return an error code when reading ASCII coded binary in, and the input has something other than '0', '1', or white space, or if the final byte is not filled. A byte should be output in -bout mode only when all eight bits of the byte have been determined from the input.  
+  
+
+Program 2: target name = bitrans
+Reads from stdin, writes to stdout. 
+Flags: -e for encrypt
+	-d for decrypt
+	-b<n> for blocksize = n
+	-k <filename> for file containing the key
+Description:
+Reads in bytes from stdin, treats as a sequence of bits starting with the MSB of the first byte, and writes same bits in transposed order as bytes to stdout.
+Blocksize is given in bytes. Reads n bytes (default n=8, so 64 bits in a block) and reorders their bits according to the permutation given in the key file, then outputs a block of bytes with the bits of the input in their permuted order. The input file must be a multiple of n bytes or else an error is output to stderr and the last block (with less than n bytes) is not output. So if n=8, the input must be of byte length 8, 16, 24, 32, etc. or else an error message is output and and error code returned. 
+
+Input and Output Encoding:
+Both input and output bits are coded with the MSB of the first byte in a block corresponding to bit position 0, and the LSB of the last byte in a block of size n corresponding to bit position 8n-1.
+
+Key File:
+The key file is 8n bytes long (one byte for each bit of input) that encodes (in binary) a permutation of 8n bits, with one byte per position, and each byte a unique value in the range of 0 to 8n-1. The permutation is given in array form. The permutation is specified by the position of the key byte and its value, so that the ith bit of input block j is the k[i]th bit of output block j, where k[i] is the (binary, not ASCII) value of the ith byte of the keyfile, and i ranges from 0 to 8n-1.  
+
+Encryption (-e option):
+The permutation as specified by the key file is applies block at a time to the input. For input block j, the ith bit is output as the k[i]th bit of the jth output block, where k[i] is the binary value of the ith byte of the keyfile. So, if the key file holds (represented in hex) 
+07 04 03 01 05 00 02 06
+and the input holds (in ASCII coded binary as shown by bitdisp) 
+0110 0101
+0011 0010
+(exactly 2 bytes), then encrypting with a block length of n=1 will yield the 2-byte output file that is shown by bitdisp in ASCII coded binary as
+1001 1010
+0111 0000
+(exactly two bytes).
+
+Decryption:
+The permutation is the inverse of the permutation for encryption. Hence, the key file must be read in, then the permutation inverted before applying the transposition. So, if the key file holds the same key as given above (represented in hex):
+07 04 03 01 05 00 02 06
+and the input holds the same input as above (in ASCII coded binary as shown by bitdisp) 
+0110 0101
+0011 0010
+(exactly 2 bytes), then decrypting with a block length of n=1 will yield the 2-byte output file that is shown by bitdisp in ASCII coded binary as
+1001 1010
+0010 0011
+(exactly two bytes).
+This is because the key can be considered as naming for each output bit position the input bit position from whence the value is copied, or the input permutation can be inverted to (represented in hex):
+05 03 06 02 01 04 07 00
+Note that for any input whose byte length is a multiple of the blocksize, encryption followed by decryption with the same key must yeild the original input exactly. Likewise, decryption followed by encryption with the same key must yeild the original input exactly. 
+
+Error Checking:
+The program must check for error conditions (e.g., missing key file, key file not having a valid permutation of 8n bits, not having a multiple of n bytes in the input, etc.), and report any error to stderr in a meaningful way, then exit with a non-zero exit code. All complete blocks that are processed by encryption or decryption may be output, but any incomplete input block must not produce output to stdout. 
+
+Submission:
+Submit 
+1) a makefile that works on storm.cise.ufl.edu for all programs and support code that makes the executables when "make all" is typed
+2) all source code (header files, etc.) that compiles and runs on storm.cise.ufl.edu using the makefile submitted
+3) README.txt file that explains the environmental expectations of the code and lists any bugs
+4) Brief textual report Report_4 in text, doc, docx, or PDF format that reflects on how you approached the problem and how you solved any challenges, and what you learned from the assignment.
+
+
+
+
+
+
