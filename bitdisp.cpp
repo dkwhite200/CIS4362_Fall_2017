@@ -89,7 +89,6 @@ int main(int argc, char *argv[])
         }
         if (count != 0)
         {
-            std::cerr << ;
             fprintf(stderr, "\n\nACBIN file ends in the middle of a byte\n\n");
             return 3;
         }
