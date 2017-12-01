@@ -14,4 +14,4 @@ bitrans: $(TRANSRC)
 	$(CC) $(LFALGS) $(TRANSRC) -o bitrans
 	
 clean:
-	\rm *.o *~ bitdisp bitrans
+	rm *.o *~ *.exe bitdisp bitrans
